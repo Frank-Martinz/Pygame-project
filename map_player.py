@@ -1,8 +1,12 @@
 import pygame
 import os
 import sys
-import block
 
+
+from pygame import *
+
+PLATFORM_WIDTH = 60
+PLATFORM_HEIGHT = 32
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
@@ -12,6 +16,22 @@ def load_image(name, colorkey=None):
     image = pygame.image.load(fullname)
     return image
 
+
+class Camera:
+    # зададим начальный сдвиг камеры
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    # сдвинуть объект obj на смещение камеры
+    def apply(self, obj):
+        obj.rect.x += self.dx
+        obj.rect.y += self.dy
+
+    # позиционировать камеру на объекте target
+    def update(self, target):
+        self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)
+        self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -103,7 +123,8 @@ class Enemy(pygame.sprite.Sprite):
 
 if __name__ == '__main__':
     pygame.init()
-    size = WIDTH, HEIGHT = 500, 500
+    all_sprites = pygame.sprite.Group()
+    size = WIDTH, HEIGHT = 700, 500
     screen = pygame.display.set_mode(size)
     level = [
         "                                   ",
@@ -114,9 +135,9 @@ if __name__ == '__main__':
         "                                   ",
         "                                   ",
         "                                   ",
-        "            *            -         ",
+        "          *            -       -   ",
         "                                   ",
-        "     +                @            ",
+        "     +          +     @            ",
         "                                   ",
         "                                   ",
         "                                   ",
@@ -141,21 +162,41 @@ if __name__ == '__main__':
 
     player = Player()
     enemy = Enemy()
+    camera = Camera()
 
     while running:
+        camera.update(player)
+
         screen.fill((255, 255, 255))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
         x = y = 0
-        entities = pygame.sprite.Group()  # Все объекты
-        platforms = []  # то, во что мы будем врезаться или опираться
-        entities.add(Player())
         for row in level:
             for col in row:
-                pf = block.Object(x, y, col)
-                entities.add(pf)
-                platforms.append(pf)
+                if col == "+":
+                    pf = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+                    pf = image.load("objects/1.png")
+                    screen.blit(pf, (x, y))
+
+                if col == "*":
+                    pf = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+                    pf = image.load("objects/2.png")
+                    screen.blit(pf, (x, y + 8))
+
+                if col == "-":
+                    pf = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+                    pf = image.load("objects/4.png")
+                    screen.blit(pf, (x, y))
+
+                if col == "@":
+                    pf = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
+                    pf = image.load("objects/3.png")
+                    screen.blit(pf, (x, y - 20))
+
+                x += PLATFORM_WIDTH
+            y += PLATFORM_HEIGHT
+            x = 0
         keys = pygame.key.get_pressed()
         if any(keys):
             if keys[pygame.K_SPACE]:
