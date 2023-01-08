@@ -7,11 +7,10 @@ DISPLAY = (WIN_WIDTH, WIN_HEIGHT)
 BACKGROUND_COLOR = "#004400"
 GROUND = "#783708"
 
-
 def main():
     PLATFORM_WIDTH = 60
     PLATFORM_HEIGHT = 32
-    PLATFORM_COLOR = "#FF6262"
+
     level = [
         "                                   ",
         "                                   ",
