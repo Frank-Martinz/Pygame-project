@@ -7,6 +7,15 @@ from pygame import *
 PLATFORM_WIDTH = 60
 PLATFORM_HEIGHT = 32
 
+pygame.mixer.init()
+pygame.mixer.music.load('sounds/melody_in_game.mp3')
+pygame.mixer.music.set_volume(0.2)
+pygame.mixer.music.play(loops=1000)
+
+jump = pygame.mixer.Sound('sounds/jump.wav')
+land = pygame.mixer.Sound('sounds/landing.wav')
+rebound = pygame.mixer.Sound('sounds/rebound.wav')
+
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
@@ -53,6 +62,7 @@ class Player(pygame.sprite.Sprite):
             if self.falling_speed != 7:
                 self.falling_speed += 0.2
             if self.rect.y + self.rect.height >= 400:
+                land.play()
                 self.falling_speed = 0
                 self.player_has_jumped = False
                 self.player_on_the_ground = True
@@ -73,9 +83,10 @@ class Player(pygame.sprite.Sprite):
                     self.falling_speed = 0
 
         if pygame.sprite.spritecollideany(self, enemies_sp):
-            for enm in enemies_sp:
+            for enm in pygame.sprite.spritecollide(self, enemies_sp, dokill=False):
                 if self.rect.bottom <= enm.rect.top + 7:
                     enm.death()
+                    rebound.play()
                     self.falling_speed = -4
                 else:
                     self.death()
@@ -112,11 +123,13 @@ class Player(pygame.sprite.Sprite):
 
     def jump(self):
         if self.player_on_the_ground:
+            jump.play()
             self.falling_speed = -8
             self.player_has_jumped = True
             self.player_on_the_ground = False
 
     def death(self):
+        pygame.mixer.music.stop()
         self.kill()
 
 
@@ -278,7 +291,9 @@ if __name__ == '__main__':
     running = True
     clock = pygame.time.Clock()
 
-    enemy = Enemy(10, 350)
+    Enemy(10, 350)
+    Enemy(400, 350)
+    Enemy(600, 200)
     player = Player()
     load_level(level)
     a = 0
