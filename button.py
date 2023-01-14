@@ -1,10 +1,26 @@
-import pygame
+import pygame, pyglet, ctypes, sys
+from moviepy.editor import *
 
 pygame.init()
+pygame.mixer.quit()
+path = 'beginning.mp4'
+
 screen = pygame.display.set_mode((500, 600))
+pygame.display.set_caption("Menu")
 clock = pygame.time.Clock()
 font = 60
 img = pygame.image.load('menu.jpg')
+
+
+def launch():
+    global screen
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    pygame.display.update()
+    clip = VideoFileClip('beginning.mp4')
+    clip = clip.resize(height=600)
+    clip.preview()
+    screen = pygame.display.set_mode((500, 600))
+    pygame.display.update()
 
 
 class Button:
@@ -32,16 +48,21 @@ class Button:
 
     def show(self):
         screen.blit(self.surface, (self.x, self.y))
-        # pygame.draw.rect(self.surface, self.bg, pygame.Rect(self.x, self.y, self.size[0], self.size[1]), border_radius=10)
 
     def click(self, event):
         x, y = pygame.mouse.get_pos()
         if event.type == pygame.MOUSEBUTTONDOWN:
             if pygame.mouse.get_pressed()[0]:
                 if self.rect.collidepoint(x, y):
-                    self.x, self.y = self.x1, self.y1
-                    self.change_text(self.feedback, bg="red")
-                    # redirect somewhere...
+                    if self.feedback == "You clicked play":
+                        launch()
+                        # redirect somewhere...
+                    if self.feedback == "You clicked help":
+                        pass
+                        # show information for help
+                    if self.feedback == "You clicked about":
+                        pass
+                        # show about
 
 
 def mainloop():
