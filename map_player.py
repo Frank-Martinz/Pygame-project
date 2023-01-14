@@ -74,7 +74,7 @@ class Player(pygame.sprite.Sprite):
 
         if pygame.sprite.spritecollideany(self, enemies_sp):
             for enm in enemies_sp:
-                if self.rect.bottom <= enm.rect.top + 5:
+                if self.rect.bottom <= enm.rect.top + 7:
                     enm.death()
                     self.falling_speed = -4
                 else:
@@ -121,9 +121,20 @@ class Player(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
+    images = list()
+    for i in range(8):
+        images.append(load_image(f'enemy_frames/enemy_frame_{i}.png'))
+
+    reversed_images = list()
+    for i in range(8):
+        reversed_images.append(pygame.transform.flip(load_image(f'enemy_frames/enemy_frame_{i}.png'), True, False))
+
+    death_image = load_image(f'enemy_frames/enemy_death.png')
+
     def __init__(self, x, y):
         super().__init__(all_sprites, enemies_sp)
-        self.image = load_image('enemy-frame-0.png')
+        self.images = Enemy.images
+        self.image = self.images[0]
         self.rect = self.image.get_rect()
 
         self.rect.x = x
@@ -132,6 +143,8 @@ class Enemy(pygame.sprite.Sprite):
         self.move = 50
         self.step = -1
 
+        self.alive = True
+
         if self.rect.y + self.rect.height >= 400:
             self.on_the_ground = True
         else:
@@ -139,7 +152,15 @@ class Enemy(pygame.sprite.Sprite):
 
         self.falling_speed = 0
 
+        self.cyc = 0
+        self.frame = 0
+
     def update(self):
+        if not self.alive:
+            return
+
+        self.update_frame()
+
         if not self.on_the_ground:
             self.falling_speed += 0.2
             self.rect.y += self.falling_speed
@@ -155,8 +176,28 @@ class Enemy(pygame.sprite.Sprite):
         self.move += self.step
         self.rect.x += self.step
 
+    def update_frame(self):
+        self.cyc += 1
+        if self.cyc == 3:
+            self.frame += 1
+            self.cyc = 0
+        if self.frame == 8:
+            self.frame = 0
+
+        if self.step == -1:
+            self.images = Enemy.images
+            self.image = self.images[self.frame]
+        else:
+            self.images = Enemy.reversed_images
+            self.image = self.images[self.frame]
+
     def death(self):
-        self.kill()
+        enemies_sp.remove(self)
+        self.alive = False
+        if self.step == -1:
+            self.image = Enemy.death_image
+        else:
+            self.image = pygame.transform.flip(Enemy.death_image, True, False)
 
 
 class Objects(pygame.sprite.Sprite):
@@ -201,7 +242,7 @@ if __name__ == '__main__':
     pygame.init()
     all_sprites = pygame.sprite.Group()
     size = WIDTH, HEIGHT = 700, 500
-    screen = pygame.display.set_mode(size)
+    screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
     level = [
         "                                   ",
         "                                   ",
@@ -237,8 +278,8 @@ if __name__ == '__main__':
     running = True
     clock = pygame.time.Clock()
 
-    player = Player()
     enemy = Enemy(10, 350)
+    player = Player()
     load_level(level)
     a = 0
     reverse = False
