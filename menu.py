@@ -20,7 +20,7 @@ def launch():
         clip = VideoFileClip('beginning.mp4')
         clip = clip.resize(height=600)
         clip.preview()
-        screen = pygame.display.set_mode((500, 600))
+        screen = pygame.display.set_mode((500, 600), pygame.FULLSCREEN)
         pygame.display.update()
     run = False
 
@@ -125,7 +125,7 @@ button1 = Button(
     "play",
     (200, 100),
     font=font,
-    bg="navy",
+    bg="orange",
     feedback="You clicked play",
     pos2=(100, 100))
 
@@ -133,20 +133,20 @@ button2 = Button(
     "help",
     (200, 200),
     font=font,
-    bg="navy",
+    bg="orange",
     feedback="You clicked help",
     pos2=(100, 250))
 button3 = Button(
     "about",
     (200, 300),
     font=font,
-    bg="navy",
+    bg="orange",
     feedback="You clicked about",
     pos2=(100, 400))
 button4 = Button(
     "exit",
     (200, 400),
     font=font,
-    bg="navy",
+    bg="orange",
     feedback="exiting",
     pos2=(100, 400))

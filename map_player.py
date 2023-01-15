@@ -57,10 +57,13 @@ class Player(pygame.sprite.Sprite):
         self.frame = 0
 
         self.has_finished = False
+        self.can_walk = True
 
     def update(self):
         self.image = self.images[self.frame]
         if not self.player_on_the_ground:
+            if self.rect.y < 0:
+                self.falling_speed = 0.2
             self.rect.y += self.falling_speed
             if self.falling_speed != 7:
                 self.falling_speed += 0.2
@@ -88,6 +91,10 @@ class Player(pygame.sprite.Sprite):
                     self.player_on_the_ground = True
                     self.player_has_jumped = False
                     self.falling_speed = 0
+                if self.rect.top <= obj.rect.bottom and self.rect.bottom > obj.rect.bottom:
+                    if not obj.can_walk:
+                        self.falling_speed = 0.2
+                        self.rect.y += 3
 
         if pygame.sprite.spritecollideany(self, enemies_sp):
             for enm in pygame.sprite.spritecollide(self, enemies_sp, dokill=False):
@@ -118,6 +125,11 @@ class Player(pygame.sprite.Sprite):
 
         if pygame.sprite.spritecollideany(self, objects_ps):
             for sp in pygame.sprite.spritecollide(self, objects_ps, dokill=False):
+                if sp.can_walk:
+                    if self.rect.x >= 690:
+                        return False
+                    return True
+
                 if sp.rect.top + 9 <= self.rect.bottom:
                     if self.rect.left < sp.rect.right - 3:
                         return False
@@ -131,9 +143,14 @@ class Player(pygame.sprite.Sprite):
 
         if pygame.sprite.spritecollideany(self, objects_ps):
             for sp in pygame.sprite.spritecollide(self, objects_ps, dokill=False):
+                if sp.can_walk:
+                    if self.rect.x <= 3:
+                        return False
+                    return True
                 if sp.rect.top + 9 <= self.rect.bottom:
                     if sp.rect.left + 3 < self.rect.right:
                         return False
+
         if self.rect.x <= 3:
             return False
         return True
@@ -293,20 +310,24 @@ class Button:
                         lvl += 1
                         f = open('data/info.txt', 'w').write(f'level: {lvl}')
                         setup_level()
+                        pause = False
+
                     if self.feedback == 'back to menu and level complete':
                         lvl = int(open('data/info.txt', 'r').readlines(1)[0].split(': ')[1])
                         lvl += 1
                         f = open('data/info.txt', 'w').write(f'level: {lvl}')
+                        running = False
                         # will be done after putting all together
 
 
 class Objects(pygame.sprite.Sprite):
-    def __init__(self, image, x, y):
+    def __init__(self, image, x, y, can_walk=False):
         self.image = image
         super().__init__(all_sprites, objects_ps)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.can_walk = can_walk
 
 
 pause = False
@@ -318,26 +339,26 @@ def do_pause():
     font = 100
     button1 = Button(
         "resume",
-        (200, 100),
+        (100, 50),
         font=font,
-        bg="navy",
+        bg="orange",
         feedback="resume",
-        pos2=(300, 200))
+        pos2=(300, 150))
 
     button2 = Button(
         "exit",
-        (200, 250),
+        (100, 200),
         font=font,
-        bg="navy",
+        bg="orange",
         feedback="exit",
-        pos2=(100, 250))
+        pos2=(300, 300))
     button3 = Button(
         "back to menu",
-        (200, 400),
+        (100, 350),
         font=font,
-        bg="navy",
+        bg="orange",
         feedback="back to menu",
-        pos2=(100, 400))
+        pos2=(300, 450))
     pause = True
     pygame.display.set_caption("Pause")
     img = pygame.image.load('for_pause.jpeg')
@@ -364,7 +385,7 @@ def gameover():
         "play",
         (45, 290),
         font=font,
-        bg="navy",
+        bg="orange",
         feedback="play",
         pos2=(230, 310))
 
@@ -372,12 +393,13 @@ def gameover():
         "back to menu",
         (350, 290),
         font=font,
-        bg="navy",
+        bg="orange",
         feedback="back to menu",
         pos2=(650, 350))
     pause = True
     pygame.display.set_caption("gameover")
     img = pygame.image.load('data/gameover.png')
+    img = pygame.transform.scale(img, (750, 600))
     while pause and running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -427,6 +449,7 @@ def finish_level():
     pause = True
     pygame.display.set_caption("level complete!!")
     img = pygame.image.load('data/level_complete.png')
+    img = pygame.transform.scale(img, (725, 600))
     while pause and running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -460,7 +483,7 @@ def load_level(level):
             if col == "-":
                 pf = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
                 pf = image.load("objects/4.png")
-                Objects(pf, x, y)
+                Objects(pf, x, y, can_walk=True)
 
             if col == "@":
                 pf = Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
@@ -477,7 +500,7 @@ def load_level(level):
 
 def setup_level():
     global all_sprites, player_sp, enemies_sp, objects_ps
-    global player
+    global player, screen_x
 
     pygame.display.set_caption("Secret Lands")
 
@@ -491,11 +514,14 @@ def setup_level():
     player_sp = pygame.sprite.Group()
     enemies_sp = pygame.sprite.Group()
     objects_ps = pygame.sprite.Group()
-    finish_sp = pygame.sprite.Group
+    finish_sp = pygame.sprite.Group()
 
     Finish()
     player = Player()
     load_level(level.split('\n'))
+
+    screen_x = 0
+    screen.blit(background_image, (screen_x, 0))
 
 
 if __name__ == '__main__':
@@ -511,7 +537,7 @@ if __name__ == '__main__':
         background_image = pygame.image.load('data/level1.png')
         all_sprites = pygame.sprite.Group()
         size = WIDTH, HEIGHT = 700, 500
-        screen = pygame.display.set_mode(size)
+        screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 
         lvl = int(open('data/info.txt', 'r').readlines(1)[0].split(': ')[1])
         level = open(f'data/level_{lvl}.txt', 'r').read()
@@ -539,7 +565,7 @@ if __name__ == '__main__':
             "pause",
             (10, 10),
             font=font,
-            bg="navy",
+            bg="orange",
             feedback="pause",
             pos2=(100, 250))
 
