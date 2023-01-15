@@ -1,16 +1,16 @@
 import pygame
 import os
 import sys
-
+from menu import mainloop
 from pygame import *
 
 PLATFORM_WIDTH = 60
 PLATFORM_HEIGHT = 32
 
 pygame.mixer.init()
-pygame.mixer.music.load('sounds/melody_in_game.mp3')
-pygame.mixer.music.set_volume(0.2)
-pygame.mixer.music.play(loops=1000)
+pygame.mixer.set_num_channels(5)
+pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/melody_in_game.mp3'), loops=1000)
+pygame.mixer.Channel(0).set_volume(0.2)
 
 jump = pygame.mixer.Sound('sounds/jump.wav')
 land = pygame.mixer.Sound('sounds/landing.wav')
@@ -213,6 +213,98 @@ class Enemy(pygame.sprite.Sprite):
             self.image = pygame.transform.flip(Enemy.death_image, True, False)
 
 
+class Button:
+    """Create a button, then blit the surface in the while loop"""
+
+    def __init__(self, text, pos, font, bg="black", feedback="", pos2=(0, 0)):
+        self.x, self.y = pos
+        self.x1, self.y1 = pos2
+        self.font = pygame.font.SysFont("Arial", font)
+        if feedback == "":
+            self.feedback = "text"
+        else:
+            self.feedback = feedback
+        self.change_text(text, bg)
+
+    def change_text(self, text, bg="black"):
+        """Change the text whe you click"""
+        self.bg = bg
+        self.text = self.font.render(text, 1, pygame.Color("White"))
+        self.size = self.text.get_size()[0] + 5, self.text.get_size()[1] + 5
+        self.surface = pygame.Surface(self.size)
+        self.surface.fill(bg)
+        self.surface.blit(self.text, (0, 0))
+        self.rect = pygame.Rect(self.x, self.y, self.size[0], self.size[1])
+
+    def show(self):
+        screen.blit(self.surface, (self.x, self.y))
+
+    def click(self, event):
+        global pause, screen, running
+        x, y = pygame.mouse.get_pos()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if pygame.mouse.get_pressed()[0]:
+                if self.rect.collidepoint(x, y):
+                    pygame.mixer.music.load('click.mp3')
+                    pygame.mixer.music.play()
+                    if self.feedback == 'pause':
+                        do_pause()
+                    if self.feedback == 'resume':
+                        pause = False
+                    if self.feedback == 'exit':
+                        sys.exit()
+                    if self.feedback == 'back to menu':
+                        running = False
+                        # will be done after putting all together
+
+
+pause = False
+
+
+def do_pause():
+    global pause, clock
+    global screen, running
+    font = 100
+    button1 = Button(
+        "resume",
+        (200, 100),
+        font=font,
+        bg="navy",
+        feedback="resume",
+        pos2=(300, 200))
+
+    button2 = Button(
+        "exit",
+        (200, 250),
+        font=font,
+        bg="navy",
+        feedback="exit",
+        pos2=(100, 250))
+    button3 = Button(
+        "back to menu",
+        (200, 400),
+        font=font,
+        bg="navy",
+        feedback="back to menu",
+        pos2=(100, 400))
+    pause = True
+    pygame.display.set_caption("Pause")
+    img = pygame.image.load('for_pause.jpeg')
+    while pause and running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            button1.click(event)
+            button2.click(event)
+            button3.click(event)
+        screen.blit(img, (0, 0))
+        button1.show()
+        button2.show()
+        button3.show()
+        pygame.display.update()
+    clock = pygame.time.Clock()
+
+
 class Objects(pygame.sprite.Sprite):
     def __init__(self, image, x, y):
         self.image = image
@@ -252,93 +344,108 @@ def load_level(level):
 
 
 if __name__ == '__main__':
-    pygame.init()
-    all_sprites = pygame.sprite.Group()
-    size = WIDTH, HEIGHT = 700, 500
-    screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
-    level = [
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "          *            -       -   ",
-        "                                   ",
-        "   +            +     @            ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   ",
-        "                                   "]
+    while True:
+        pygame.init()
+        pause = False
+        mainloop()
+        pygame.mixer.quit()
+        pygame.mixer.init()
+        pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/melody_in_game.mp3'), loops=1000)
+        pygame.mixer.Channel(0).set_volume(0.2)
+        all_sprites = pygame.sprite.Group()
+        size = WIDTH, HEIGHT = 700, 500
+        screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+        level = [
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                    ",
+            "                                   ",
+            "                                   ",
+            "          *            -       -   ",
+            "                                   ",
+            "   +            +     @            ",
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                   ",
+            "                                   "]
 
-    '''pygame.mouse.set_cursor((8, 8), (0, 0), (0, 0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0, 0))'''
-    pygame.event.pump()
+        '''pygame.mouse.set_cursor((8, 8), (0, 0), (0, 0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0, 0))'''
+        pygame.event.pump()
 
-    FPS = 60
+        FPS = 60
 
-    all_sprites = pygame.sprite.Group()
-    player_sp = pygame.sprite.Group()
-    enemies_sp = pygame.sprite.Group()
-    objects_ps = pygame.sprite.Group()
+        all_sprites = pygame.sprite.Group()
+        player_sp = pygame.sprite.Group()
+        enemies_sp = pygame.sprite.Group()
+        objects_ps = pygame.sprite.Group()
 
-    running = True
-    clock = pygame.time.Clock()
+        running = True
+        clock = pygame.time.Clock()
 
-    Enemy(10, 350)
-    Enemy(400, 350)
-    Enemy(600, 200)
-    player = Player()
-    load_level(level)
-    a = 0
-    reverse = False
+        Enemy(10, 350)
+        Enemy(400, 350)
+        Enemy(600, 200)
+        player = Player()
+        load_level(level)
+        a = 0
+        reverse = False
+        font = 30
+        button_pause = Button(
+            "pause",
+            (10, 10),
+            font=font,
+            bg="navy",
+            feedback="pause",
+            pos2=(100, 250))
+        while running:
+            was_move = False
+            if a == 3:
+                player.update_frame(reversed_image=reverse)
+                a = 0
+            screen.fill((255, 255, 255))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                button_pause.click(event)
 
-    while running:
-        was_move = False
-        if a == 3:
-            player.update_frame(reversed_image=reverse)
-            a = 0
-        screen.fill((255, 255, 255))
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+            keys = pygame.key.get_pressed()
+            if any(keys):
+                if keys[pygame.K_SPACE]:
+                    player.jump()
 
-        keys = pygame.key.get_pressed()
-        if any(keys):
-            if keys[pygame.K_SPACE]:
-                player.jump()
+                if keys[pygame.K_a]:
+                    if player.can_make_left_move():
+                        for sp in all_sprites:
+                            sp.rect.x += 3
+                        player.move(-3)
+                        a += 1
+                        was_move = True
+                        reverse = True
 
-            if keys[pygame.K_a]:
-                if player.can_make_left_move():
-                    for sp in all_sprites:
-                        sp.rect.x += 3
-                    player.move(-3)
-                    a += 1
-                    was_move = True
-                    reverse = True
+                if keys[pygame.K_d]:
+                    if player.can_make_right_move():
+                        for sp in all_sprites:
+                            sp.rect.x -= 3
+                        player.move(3)
+                        a += 1
+                        was_move = True
+                        reverse = False
 
-            if keys[pygame.K_d]:
-                if player.can_make_right_move():
-                    for sp in all_sprites:
-                        sp.rect.x -= 3
-                    player.move(3)
-                    a += 1
-                    was_move = True
-                    reverse = False
+            if not was_move:
+                a = 0
+                player.frame = 0
 
-        if not was_move:
-            a = 0
-            player.frame = 0
-
-        all_sprites.update()
-        all_sprites.draw(screen)
-        pygame.display.update()
-        clock.tick(FPS)
-
-    pygame.quit()
+            all_sprites.update()
+            all_sprites.draw(screen)
+            pygame.image.save(screen, "for_pause.jpeg")
+            button_pause.show()
+            pygame.display.update()
+            clock.tick(FPS)
