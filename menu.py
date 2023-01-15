@@ -78,6 +78,8 @@ def about_or_help(filename, text):
     while flag:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                pygame.mixer.music.load('click.mp3')
+                pygame.mixer.music.play()
                 flag = False
         screen.blit(img, (0, 0))
         pygame.display.update()
