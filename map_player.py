@@ -248,6 +248,7 @@ class Button:
                     pygame.mixer.music.load('click.mp3')
                     pygame.mixer.music.play()
                     if self.feedback == 'pause':
+                        pygame.image.save(screen, "for_pause.jpeg")
                         do_pause()
                     if self.feedback == 'resume':
                         pause = False
@@ -361,7 +362,7 @@ if __name__ == '__main__':
             "                                   ",
             "                                   ",
             "                                   ",
-            "                                    ",
+            "                                   ",
             "                                   ",
             "                                   ",
             "          *            -       -   ",
@@ -410,12 +411,11 @@ if __name__ == '__main__':
             if a == 3:
                 player.update_frame(reversed_image=reverse)
                 a = 0
-            screen.fill((255, 255, 255))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 button_pause.click(event)
-
+            screen.fill((255, 255, 255))
             keys = pygame.key.get_pressed()
             if any(keys):
                 if keys[pygame.K_SPACE]:
@@ -445,7 +445,6 @@ if __name__ == '__main__':
 
             all_sprites.update()
             all_sprites.draw(screen)
-            pygame.image.save(screen, "for_pause.jpeg")
             button_pause.show()
             pygame.display.update()
             clock.tick(FPS)
