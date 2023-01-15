@@ -111,6 +111,8 @@ class Player(pygame.sprite.Sprite):
                 if sp.rect.top + 9 <= self.rect.bottom:
                     if self.rect.left < sp.rect.right - 3:
                         return False
+        if self.rect.x >= 690:
+            return False
         return True
 
     def can_make_left_move(self):
@@ -119,6 +121,8 @@ class Player(pygame.sprite.Sprite):
                 if sp.rect.top + 9 <= self.rect.bottom:
                     if sp.rect.left + 3 < self.rect.right:
                         return False
+        if self.rect.x <= 3:
+            return False
         return True
 
     def jump(self):
@@ -352,6 +356,7 @@ if __name__ == '__main__':
         pygame.mixer.init()
         pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/melody_in_game.mp3'), loops=1000)
         pygame.mixer.Channel(0).set_volume(0.2)
+        background_image = pygame.image.load('data/level1.png')
         all_sprites = pygame.sprite.Group()
         size = WIDTH, HEIGHT = 700, 500
         screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
@@ -391,7 +396,7 @@ if __name__ == '__main__':
         clock = pygame.time.Clock()
 
         Enemy(10, 350)
-        Enemy(400, 350)
+        # Enemy(400, 350)
         Enemy(600, 200)
         player = Player()
         load_level(level)
@@ -405,12 +410,15 @@ if __name__ == '__main__':
             bg="navy",
             feedback="pause",
             pos2=(100, 250))
+
+        screen_x = 0
         while running:
             was_move = False
             if a == 3:
                 player.update_frame(reversed_image=reverse)
                 a = 0
             screen.fill((255, 255, 255))
+            screen.blit(background_image, (screen_x, 0))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -423,8 +431,11 @@ if __name__ == '__main__':
 
                 if keys[pygame.K_a]:
                     if player.can_make_left_move():
-                        for sp in all_sprites:
-                            sp.rect.x += 3
+                        if screen_x <= -3 and player.rect.x == 300:
+                            for sp in all_sprites:
+                                sp.rect.x += 3
+
+                            screen_x += 3
                         player.move(-3)
                         a += 1
                         was_move = True
@@ -432,8 +443,12 @@ if __name__ == '__main__':
 
                 if keys[pygame.K_d]:
                     if player.can_make_right_move():
-                        for sp in all_sprites:
-                            sp.rect.x -= 3
+                        if screen_x >= -2277 and player.rect.x == 300:
+                            print(screen_x)
+                            for sp in all_sprites:
+                                sp.rect.x -= 3
+
+                            screen_x -= 3
                         player.move(3)
                         a += 1
                         was_move = True
