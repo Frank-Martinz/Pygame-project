@@ -1,26 +1,28 @@
 import pygame, pyglet, ctypes, sys
 from moviepy.editor import *
+import os
 
 pygame.init()
-pygame.mixer.quit()
+pygame.mixer.init()
 path = 'beginning.mp4'
 
 screen = pygame.display.set_mode((500, 600))
 pygame.display.set_caption("Menu")
 clock = pygame.time.Clock()
-font = 60
 img = pygame.image.load('menu.jpg')
+font = 60
 
 
 def launch():
-    global screen
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    pygame.display.update()
-    clip = VideoFileClip('beginning.mp4')
-    clip = clip.resize(height=600)
-    clip.preview()
-    screen = pygame.display.set_mode((500, 600))
-    pygame.display.update()
+    global screen, run
+    if not os.path.isfile('for_pause.jpeg'):
+        pygame.display.update()
+        clip = VideoFileClip('beginning.mp4')
+        clip = clip.resize(height=600)
+        clip.preview()
+        screen = pygame.display.set_mode((500, 600))
+        pygame.display.update()
+    run = False
 
 
 class Button:
@@ -50,33 +52,71 @@ class Button:
         screen.blit(self.surface, (self.x, self.y))
 
     def click(self, event):
+        global run
         x, y = pygame.mouse.get_pos()
         if event.type == pygame.MOUSEBUTTONDOWN:
             if pygame.mouse.get_pressed()[0]:
                 if self.rect.collidepoint(x, y):
+                    pygame.mixer.music.load('click.mp3')
+                    pygame.mixer.music.play()
                     if self.feedback == "You clicked play":
+                        pygame.display.set_caption('play')
                         launch()
+                        run = False
                         # redirect somewhere...
+                        pygame.display.set_caption('menu')
                     if self.feedback == "You clicked help":
-                        pass
+                        about_or_help('help.jpeg', 'help')
                         # show information for help
                     if self.feedback == "You clicked about":
-                        pass
+                        about_or_help('about.jpeg', 'about')
                         # show about
+                    if self.feedback == "exiting":
+                        sys.exit()
+
+
+def about_or_help(filename, text):
+    screen = pygame.display.set_mode((534, 380))
+    pygame.display.set_caption(text)
+    img = pygame.image.load(filename)
+    flag = True
+    while flag:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.mixer.music.load('click.mp3')
+                pygame.mixer.music.play()
+                flag = False
+        screen.blit(img, (0, 0))
+        pygame.display.update()
+    screen = pygame.display.set_mode((500, 600))
+
+
+run = True
 
 
 def mainloop():
-    while True:
+    global run
+    pygame.init()
+    pygame.mixer.init()
+    path = 'beginning.mp4'
+    screen = pygame.display.set_mode((500, 600))
+    pygame.display.set_caption("Menu")
+    clock = pygame.time.Clock()
+    img = pygame.image.load('menu.jpg')
+    run = True
+    while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
             button1.click(event)
             button2.click(event)
             button3.click(event)
+            button4.click(event)
         screen.blit(img, (0, 0))
         button1.show()
         button2.show()
         button3.show()
+        button4.show()
         clock.tick(30)
         pygame.display.update()
 
@@ -91,16 +131,22 @@ button1 = Button(
 
 button2 = Button(
     "help",
-    (200, 250),
+    (200, 200),
     font=font,
     bg="navy",
     feedback="You clicked help",
     pos2=(100, 250))
 button3 = Button(
     "about",
-    (200, 400),
+    (200, 300),
     font=font,
     bg="navy",
     feedback="You clicked about",
     pos2=(100, 400))
-mainloop()
+button4 = Button(
+    "exit",
+    (200, 400),
+    font=font,
+    bg="navy",
+    feedback="exiting",
+    pos2=(100, 400))
