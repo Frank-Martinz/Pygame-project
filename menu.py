@@ -1,5 +1,6 @@
 import pygame, pyglet, ctypes, sys
 from moviepy.editor import *
+import os
 
 pygame.init()
 pygame.mixer.init()
@@ -8,18 +9,20 @@ path = 'beginning.mp4'
 screen = pygame.display.set_mode((500, 600))
 pygame.display.set_caption("Menu")
 clock = pygame.time.Clock()
-font = 60
 img = pygame.image.load('menu.jpg')
+font = 60
 
 
 def launch():
-    global screen
-    pygame.display.update()
-    clip = VideoFileClip('beginning.mp4')
-    clip = clip.resize(height=600)
-    clip.preview()
-    screen = pygame.display.set_mode((500, 600))
-    pygame.display.update()
+    global screen, run
+    if not os.path.isfile('for_pause.jpeg'):
+        pygame.display.update()
+        clip = VideoFileClip('beginning.mp4')
+        clip = clip.resize(height=600)
+        clip.preview()
+        screen = pygame.display.set_mode((500, 600))
+        pygame.display.update()
+    run = False
 
 
 class Button:
@@ -49,6 +52,7 @@ class Button:
         screen.blit(self.surface, (self.x, self.y))
 
     def click(self, event):
+        global run
         x, y = pygame.mouse.get_pos()
         if event.type == pygame.MOUSEBUTTONDOWN:
             if pygame.mouse.get_pressed()[0]:
@@ -58,6 +62,7 @@ class Button:
                     if self.feedback == "You clicked play":
                         pygame.display.set_caption('play')
                         launch()
+                        run = False
                         # redirect somewhere...
                         pygame.display.set_caption('menu')
                     if self.feedback == "You clicked help":
@@ -86,8 +91,20 @@ def about_or_help(filename, text):
     screen = pygame.display.set_mode((500, 600))
 
 
+run = True
+
+
 def mainloop():
-    while True:
+    global run
+    pygame.init()
+    pygame.mixer.init()
+    path = 'beginning.mp4'
+    screen = pygame.display.set_mode((500, 600))
+    pygame.display.set_caption("Menu")
+    clock = pygame.time.Clock()
+    img = pygame.image.load('menu.jpg')
+    run = True
+    while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -133,4 +150,3 @@ button4 = Button(
     bg="navy",
     feedback="exiting",
     pos2=(100, 400))
-mainloop()
