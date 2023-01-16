@@ -92,8 +92,7 @@ class Player(pygame.sprite.Sprite):
                     self.player_has_jumped = False
                     self.falling_speed = 0
                 if self.rect.top <= obj.rect.bottom and self.rect.bottom > obj.rect.bottom:
-                    if obj.rect.left < self.rect.left and obj.rect.right > self.rect.right or \
-                            obj.rect.left < self.rect.right or obj.rect.right > self.rect.left:
+                    if obj.rect.left < self.rect.left and obj.rect.right > self.rect.right:
                         if not obj.can_walk:
                             self.falling_speed = 0.2
                             self.rect.y += 3
