@@ -92,9 +92,11 @@ class Player(pygame.sprite.Sprite):
                     self.player_has_jumped = False
                     self.falling_speed = 0
                 if self.rect.top <= obj.rect.bottom and self.rect.bottom > obj.rect.bottom:
-                    if not obj.can_walk:
-                        self.falling_speed = 0.2
-                        self.rect.y += 3
+                    if obj.rect.left < self.rect.left and obj.rect.right > self.rect.right or \
+                            obj.rect.left < self.rect.right or obj.rect.right > self.rect.left:
+                        if not obj.can_walk:
+                            self.falling_speed = 0.2
+                            self.rect.y += 3
 
         if pygame.sprite.spritecollideany(self, enemies_sp):
             for enm in pygame.sprite.spritecollide(self, enemies_sp, dokill=False):
