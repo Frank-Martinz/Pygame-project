@@ -60,6 +60,8 @@ class Player(pygame.sprite.Sprite):
         self.can_walk = True
 
     def update(self):
+        if self.rect.y + self.rect.height > 400:
+            self.rect.y = 400 - self.rect.height
         self.image = self.images[self.frame]
         if not self.player_on_the_ground:
             if self.rect.y < 0:
@@ -92,7 +94,7 @@ class Player(pygame.sprite.Sprite):
                     self.player_has_jumped = False
                     self.falling_speed = 0
                 if self.rect.top <= obj.rect.bottom and self.rect.bottom > obj.rect.bottom:
-                    if obj.rect.left < self.rect.left and obj.rect.right > self.rect.right:
+                    if obj.rect.left < self.rect.left or obj.rect.right > self.rect.right:
                         if not obj.can_walk:
                             self.falling_speed = 0.2
                             self.rect.y += 3
@@ -308,15 +310,19 @@ class Button:
                         pause = False
                     if self.feedback == 'next level':
                         lvl = int(open('data/info.txt', 'r').readlines(1)[0].split(': ')[1])
-                        lvl += 1
-                        f = open('data/info.txt', 'w').write(f'level: {lvl}')
-                        setup_level()
-                        pause = False
+                        if lvl != 3:
+                            lvl += 1
+                            f = open('data/info.txt', 'w').write(f'level: {lvl}')
+                            setup_level()
+                            pause = False
+                        else:
+                            running = False
 
                     if self.feedback == 'back to menu and level complete':
                         lvl = int(open('data/info.txt', 'r').readlines(1)[0].split(': ')[1])
-                        lvl += 1
-                        f = open('data/info.txt', 'w').write(f'level: {lvl}')
+                        if lvl != 3:
+                            lvl += 1
+                            f = open('data/info.txt', 'w').write(f'level: {lvl}')
                         running = False
                         # will be done after putting all together
 
