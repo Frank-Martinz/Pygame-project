@@ -316,6 +316,7 @@ class Button:
                             setup_level()
                             pause = False
                         else:
+                            f = open('data/info.txt', 'w').write(f'level: 1')
                             running = False
 
                     if self.feedback == 'back to menu and level complete':
@@ -323,6 +324,8 @@ class Button:
                         if lvl != 3:
                             lvl += 1
                             f = open('data/info.txt', 'w').write(f'level: {lvl}')
+                        else:
+                            f = open('data/info.txt', 'w').write(f'level: 1')
                         running = False
                         # will be done after putting all together
 
